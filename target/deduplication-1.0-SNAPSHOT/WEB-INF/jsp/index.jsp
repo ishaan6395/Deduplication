@@ -1,9 +1,8 @@
 <%-- 
     Document   : index
     Created on : Sep 22, 2018, 3:13:54 PM
-    Author     : thakk
+    Author     : Ishaan Thakker
 --%>
-<%@ taglib uri="http://java.sun.com/jsp/jstl/core" prefix="c" %>
 <%@page contentType="text/html" pageEncoding="UTF-8"%>
 <!DOCTYPE html>
 <html>
@@ -17,9 +16,16 @@
                 $.ajax({
                     url:'getdata.htm',
                     success:function(response){
+                        
+                        //Read the Response Data which has two lists
                         var data = JSON.parse(response);
+                        
+                        //Assign duplicate list to a variable
                         var duplicate = data[0];
+                        //Assign non_duplicate list to a variable
                         var non_duplicate = data[1];
+                        
+                        //Populate The duplicate table with values from duplicate list
                         for(var i in duplicate){
                             $('#duplicate_table').append('<tr><Td>'
                                     +duplicate[i].row_id
@@ -36,6 +42,8 @@
                                     +'<td>'+duplicate[i].phone+'</td>'
                                     +'</td></tr>');
                         }
+                        
+                        //Populate the non duplicate table using values from non duplicate list
                         for(var i in non_duplicate){
                             $('#non_duplicate_table').append('<tr><Td>'
                                     +non_duplicate[i].row_id
