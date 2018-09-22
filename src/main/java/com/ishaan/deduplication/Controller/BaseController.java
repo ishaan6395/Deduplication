@@ -14,8 +14,10 @@ import org.apache.commons.csv.CSVFormat;
 import org.apache.commons.csv.CSVParser;
 import org.apache.commons.csv.CSVRecord;
 import org.apache.commons.text.similarity.LevenshteinDistance;
+import org.codehaus.jackson.map.ObjectMapper;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.servlet.ModelAndView;
 
 /**
@@ -30,21 +32,36 @@ public class BaseController {
     
     @RequestMapping(value = "index")
     public ModelAndView index(){
+        return new ModelAndView("index");
+    }
+    
+    @RequestMapping("getdata")
+    public @ResponseBody String getData(){
         File f;
         FileReader fr;
         BufferedReader br;
+        List<UserData> duplicate_records =new ArrayList<>();
+        List<UserData> non_duplicate = new ArrayList<>();
+        String response = "";
+        ObjectMapper mapper = new ObjectMapper();
+        
         try{
             f = new File("C:\\Users\\thakk\\Downloads\\takehome\\advanced.csv");
             fr = new FileReader(f);
             br = new BufferedReader(fr);
            
-            HashMap<Integer, List<UserData>> duplicate_records = new HashMap<>();
             CSVParser csvParser = new CSVParser(br, CSVFormat.DEFAULT);
         
             List<UserData> records = new ArrayList<>();
-            List<UserData> non_duplicate = new ArrayList<>();
+            non_duplicate = new ArrayList<>();
             
+            int row_count = 0;
             for(CSVRecord x: csvParser){
+            if(row_count==0){
+                row_count++;
+                continue;
+            }
+                
             String id = (x.get(0));
             String fName = x.get(1);
             String lName = x.get(2);
@@ -84,7 +101,9 @@ public class BaseController {
                 }
                 
                 if(found_duplicate){
-                    duplicate_records.put(ind, temp);
+                    for(UserData data: temp){
+                        duplicate_records.add(data);
+                    }
                     ind++;
                 }else{
                     non_duplicate.add(record1);
@@ -93,28 +112,19 @@ public class BaseController {
             }
             System.out.println();
             System.out.println("**************************** Duplicate Records ****************************");
-            for(int duplicate_idx = 0; duplicate_idx < duplicate_records.size(); 
-                    duplicate_idx++){
-                List<UserData> content;
-                
-                if(duplicate_records.get(duplicate_idx)!=null){
-                    content = duplicate_records.get(duplicate_idx);
-                    
-                    for(UserData data: content){
-                        System.out.println(data.getRow_id() +","+ 
-                                           data.getFirst_name() +","+
-                                           data.getLast_name() +","+
-                                           data.getCompany() +","+
-                                           data.getEmail() +","+
-                                           data.getAddress1() +","+
-                                           data.getAddress2() +","+
-                                           data.getZip() +","+
-                                           data.getCity() +","+
-                                           data.getState_long() +","+
-                                           data.getState_short() +","+
-                                           data.getPhone());
-                    }
-                }
+            for(UserData duplicate_record: duplicate_records){
+                System.out.println(duplicate_record.getRow_id() +","+ 
+                                           duplicate_record.getFirst_name() +","+
+                                           duplicate_record.getLast_name() +","+
+                                           duplicate_record.getCompany() +","+
+                                           duplicate_record.getEmail() +","+
+                                           duplicate_record.getAddress1() +","+
+                                           duplicate_record.getAddress2() +","+
+                                           duplicate_record.getZip() +","+
+                                           duplicate_record.getCity() +","+
+                                           duplicate_record.getState_long() +","+
+                                           duplicate_record.getState_short() +","+
+                                           duplicate_record.getPhone());
             }
             
             System.out.println();
@@ -136,6 +146,10 @@ public class BaseController {
                                            data.getPhone());
             }
             
+            List<List<UserData>> res = new ArrayList<>();
+            res.add(duplicate_records);
+            res.add(non_duplicate);
+          response = mapper.writeValueAsString(res);
         }catch(FileNotFoundException e){
             System.out.println(e.getMessage());
         }catch(java.io.IOException e){
@@ -145,7 +159,7 @@ public class BaseController {
         }
         
         
-        return new ModelAndView("index");
+        return response;
     }
     
     public static boolean isSame(UserData user1, UserData user2){
